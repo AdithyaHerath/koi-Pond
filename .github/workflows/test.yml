@@ -1,0 +1,26 @@
+name: Test action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the action from this repo
+        id: koi
+        uses: ./
+        with:
+          output_path: out/pond.svg
+      - name: Check output
+        run: |
+          test -s out/pond.svg
+          grep -q "<svg" out/pond.svg
+          echo "Stage: ${{ steps.koi.outputs.stage }}"
+          test -n "${{ steps.koi.outputs.stage }}"
+      - name: Offline render at every stage
+        run: for n in 0 30 150 300 700 1500 3000 6000; do node src/generate.js test --count $n --out out/p$n.svg; done

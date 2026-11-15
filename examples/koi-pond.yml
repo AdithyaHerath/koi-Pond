@@ -1,0 +1,26 @@
+name: Feed the koi
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"   # twice a day
+  workflow_dispatch:          # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  grow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: AdithyaHerath/koi-Pond@v1
+        with:
+          output_path: koi-pond/pond.svg
+
+      - name: Commit pond
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add koi-pond/pond.svg
+          git diff --cached --quiet || (git commit -m "🎏 Feed the koi" && git push)

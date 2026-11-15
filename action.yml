@@ -1,0 +1,42 @@
+name: "Koi Pond"
+description: "Grow an animated koi pond in your GitHub profile README — every contribution makes your koi grow."
+author: "AdithyaHerath"
+branding:
+  icon: "droplet"
+  color: "blue"
+
+inputs:
+  github_user:
+    description: "GitHub username whose contributions feed the koi"
+    required: false
+    default: ${{ github.repository_owner }}
+  github_token:
+    description: "Token used to read contribution data (the default GITHUB_TOKEN is enough)"
+    required: false
+    default: ${{ github.token }}
+  output_path:
+    description: "Where to write the SVG, relative to the repository root"
+    required: false
+    default: "koi-pond/pond.svg"
+
+outputs:
+  stage:
+    description: "The koi's current stage (e.g. YOUNG, ELDER)"
+    value: ${{ steps.render.outputs.stage }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - id: render
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GH_USER: ${{ inputs.github_user }}
+        KOI_OUTPUT: ${{ inputs.output_path }}
+      run: |
+        line=$(node "${{ github.action_path }}/src/generate.js")
+        echo "$line"
+        echo "stage=$(echo "$line" | sed -E 's/.*→ ([A-Z]+) .*/\1/')" >> "$GITHUB_OUTPUT"
